@@ -1,0 +1,39 @@
+# This docker-compose file is only for quick launch mlflow.
+# Do not use in the production environment.
+
+
+version: '3.6'
+
+services:
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - type: volume
+        source: mlflow-db-volume
+        target: /var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+
+
+  mlflow:
+    restart: always
+    build: ./mlflow
+    image: mlflow_server
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+
+
+volumes:
+  mlflow-db-volume:
