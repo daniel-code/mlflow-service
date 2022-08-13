@@ -1,5 +1,9 @@
 # mlflow-service
 
+Launch mlflow service via docker
+
+using local file system as the artifacts of mlflow 
+
 ## Setup
 
 1. modify .env
