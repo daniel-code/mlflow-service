@@ -2,7 +2,7 @@
 
 Launch mlflow service via docker
 
-using local file system as the artifacts of mlflow
+using remote artifacts, [MinIO](https://min.io/)
 
 ## Setup
 
