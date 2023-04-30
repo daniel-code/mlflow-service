@@ -25,17 +25,24 @@ services:
   mlflow:
     restart: always
     build: ./mlflow
-    image: mlflow_server
-    container_name: mlflow_server
+    image: mlflow
+    container_name: mlflow
     ports:
       - "5000:5000"
+    networks:
+      - mlflow-service-net
     volumes:
-      - ./mlruns:/mlflow/mlruns
-
+      - type: volume
+        source: mlflow-volume
+        target: /mlflow/mlruns
     environment:
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MARIADB_USER=${MARIADB_USER}
+      - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+      - MARIADB_DATABASE=${MARIADB_DATABASE}
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - BUCKET_NAME=${BUCKET_NAME}
 
   minio:
     image: minio/minio
