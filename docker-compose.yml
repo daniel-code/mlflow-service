@@ -6,17 +6,20 @@ version: '3.6'
 
 services:
   db:
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    image: mariadb
+    container_name: mariadb
     restart: always
     volumes:
       - type: volume
-        source: mlflow-db-volume
+        source: db-volume
         target: /var/lib/mysql
     ports:
       - "3306:3306"
+    networks:
+      - mlflow-service-net
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_PASSWORD}
+      - MARIADB_DATABASE=${MARIADB_DATABASE}
 
 
   mlflow:
@@ -49,5 +52,10 @@ services:
     command: server ${MINIO_VOLUMES} --console-address ":9001"
 
 volumes:
-  mlflow-db-volume:
+  mlflow-volume:
+  db-volume:
   minio-volume:
+
+networks:
+  mlflow-service-net:
+    external: true
