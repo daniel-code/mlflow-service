@@ -15,14 +15,13 @@ x-logging:
 services:
   db:
     image: postgres
-    container_name: postgres
     restart: always
     volumes:
-      - db-volume:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - "./data/postgres-data:/var/lib/postgresql/data"
+    expose:
+      - 5432
     networks:
-      - mlflow-service-net
+      - internal-net
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -32,13 +31,12 @@ services:
     restart: always
     build: ./mlflow
     image: mlflow:2.8.0
-    container_name: mlflow
-    ports:
-      - "5000:5000"
+    expose:
+      - 5000
     networks:
-      - mlflow-service-net
+      - internal-net
     volumes:
-      - mlflow-volume:/mlflow/mlruns
+      - "./data/mlflow-data:/mlflow/mlruns"
     environment:
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
@@ -53,20 +51,20 @@ services:
 
   minio:
     image: minio/minio
-    container_name: minio
     restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose:
+      - 9000
+      - 9001
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_PROMETHEUS_URL=${MINIO_PROMETHEUS_URL:-http://prometheus:9090}
       - MINIO_PROMETHEUS_AUTH_TYPE=${MINIO_PROMETHEUS_AUTH_TYPE:-public}
+      - MLFLOW_TRACKING_INSECURE_TLS=true
     networks:
-      - mlflow-service-net
+      - internal-net
     volumes:
-      - minio-volume:${MINIO_VOLUMES}
+      - "./data/minio-data:${MINIO_VOLUMES}"
     command: server ${MINIO_VOLUMES} --console-address ":9001"
 
   prometheus:
@@ -74,12 +72,12 @@ services:
     restart: unless-stopped
     logging: *default-logging
     networks:
-      - mlflow-service-net
-    ports:
-      - "9090:9090"
+      - internal-net
+    expose:
+      - 9090
     volumes:
       - "./prometheus/minio/prometheus.yml:/etc/prometheus/prometheus.yml"
-      - "prometheus-volume:/prometheus"
+      - "./data/prometheus-data:/prometheus"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
@@ -102,5 +100,6 @@ services:
       - minio
 
 networks:
-  mlflow-service-net:
+  internal-net:
+  mlflow-net:
     external: true
