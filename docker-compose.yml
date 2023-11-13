@@ -83,11 +83,23 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
-volumes:
-  mlflow-volume:
-  db-volume:
-  minio-volume:
-  prometheus-volume:
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+      - "5000:5000"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/log:/var/log/nginx
+    networks:
+      - mlflow-net
+      - internal-net
+    depends_on:
+      - minio
 
 networks:
   mlflow-service-net:
