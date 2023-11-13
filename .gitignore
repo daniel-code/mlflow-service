@@ -134,3 +134,10 @@ mlruns/*
 
 # minio
 credentials.json
+
+# ssl
+*.key
+*.crt
+
+# data
+data/
