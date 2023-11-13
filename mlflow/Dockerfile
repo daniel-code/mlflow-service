@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM python:3.8
 
 WORKDIR /mlflow
 
@@ -8,4 +8,3 @@ RUN python -m pip install --upgrade pip  \
     && pip install -r requirements.txt
 
 EXPOSE 5000
-CMD mlflow server --backend-store-uri mysql+pymysql://${MARIADB_USER}:${MARIADB_PASSWORD}@db:3306/${MARIADB_DATABASE} --default-artifact-root s3://${BUCKET_NAME} --host 0.0.0.0

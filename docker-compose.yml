@@ -36,13 +36,16 @@ services:
         source: mlflow-volume
         target: /mlflow/mlruns
     environment:
-      - MARIADB_USER=${MARIADB_USER}
-      - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-      - MARIADB_DATABASE=${MARIADB_DATABASE}
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-      - BUCKET_NAME=${BUCKET_NAME}
+    command:
+      - sh
+      - -c
+      - mlflow server 
+        --backend-store-uri mysql+pymysql://${MARIADB_USER}:${MARIADB_PASSWORD}@db:3306/${MARIADB_DATABASE} 
+        --default-artifact-root s3://${BUCKET_NAME} 
+        --host 0.0.0.0
 
   minio:
     image: minio/minio
