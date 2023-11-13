@@ -25,7 +25,7 @@ services:
   mlflow:
     restart: always
     build: ./mlflow
-    image: mlflow
+    image: mlflow:2.8.0
     container_name: mlflow
     ports:
       - "5000:5000"
