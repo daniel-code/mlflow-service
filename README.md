@@ -9,24 +9,24 @@ using remote artifacts, [MinIO](https://min.io/)
 1. modify .env from .env.example
 
    ```dotenv
-   # mysql
-   MARIADB_USER=
-   MARIADB_PASSWORD=
-   MARIADB_DATABASE=mlflow
-   
-   # mlflow
-   BUCKET_NAME=mlflow
-   
-   # minio
-   MINIO_ROOT_USER=
-   MINIO_ROOT_PASSWORD=
-   MINIO_VOLUMES=/mnt/data
-   
-   # project
-   MLFLOW_S3_ENDPOINT_URL=http://localhost:9000
-   ## usually same as `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`
-   AWS_ACCESS_KEY_ID=
-   AWS_SECRET_ACCESS_KEY=
+    # postgres
+    POSTGRES_USER=
+    POSTGRES_PASSWORD=
+    POSTGRES_DB=mlflow
+    
+    # mlflow
+    BUCKET_NAME=mlflow
+    
+    # MinIO
+    MINIO_ROOT_USER=
+    MINIO_ROOT_PASSWORD=
+    MINIO_VOLUMES=/mnt/data
+    
+    # project
+    MLFLOW_S3_ENDPOINT_URL=http://localhost:9000
+    ## usually same as `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`
+    AWS_ACCESS_KEY_ID=
+    AWS_SECRET_ACCESS_KEY=
    ```
 
 2. Launch Service
