@@ -4,6 +4,14 @@
 
 version: '3.6'
 
+# rotating logs so they do not overflow
+x-logging:
+  logging: &default-logging
+    driver: "local"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   db:
     image: postgres
@@ -46,22 +54,40 @@ services:
   minio:
     image: minio/minio
     container_name: minio
+    restart: unless-stopped
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_PROMETHEUS_URL=${MINIO_PROMETHEUS_URL:-http://prometheus:9090}
+      - MINIO_PROMETHEUS_AUTH_TYPE=${MINIO_PROMETHEUS_AUTH_TYPE:-public}
     networks:
       - mlflow-service-net
     volumes:
       - minio-volume:${MINIO_VOLUMES}
     command: server ${MINIO_VOLUMES} --console-address ":9001"
 
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.37.1
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - mlflow-service-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus/minio/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "prometheus-volume:/prometheus"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
 volumes:
   mlflow-volume:
   db-volume:
   minio-volume:
+  prometheus-volume:
 
 networks:
   mlflow-service-net:
