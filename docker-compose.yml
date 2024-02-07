@@ -67,6 +67,27 @@ services:
       - "./data/minio-data:${MINIO_VOLUMES}"
     command: server ${MINIO_VOLUMES} --console-address ":9001"
 
+  # Create a bucket named "bucket" if it doesn't exist
+  # Inspire by https://mlflow.org/docs/latest/tracking/tutorials/remote-server.html#create-compose-yaml
+  minio-create-bucket:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - BUCKET_NAME=${BUCKET_NAME}
+    entrypoint: >
+      bash -c "
+      mc alias set minio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+      if ! mc ls minio | grep --quiet bucket; then
+        mc mb minio/${BUCKET_NAME}
+      else
+        echo '${BUCKET_NAME} already exists'
+      fi
+      "
+
   prometheus:
     image: quay.io/prometheus/prometheus:v2.37.1
     restart: unless-stopped
