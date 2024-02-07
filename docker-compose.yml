@@ -30,7 +30,7 @@ services:
   mlflow:
     restart: always
     build: ./mlflow
-    image: mlflow:2.8.0
+    image: mlflow:latest
     expose:
       - 5000
     networks:
