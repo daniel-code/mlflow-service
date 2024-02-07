@@ -30,13 +30,13 @@ services:
   mlflow:
     restart: always
     build: ./mlflow
-    image: mlflow:2.8.0
+    image: mlflow:latest
     expose:
       - 5000
     networks:
       - internal-net
     volumes:
-      - "./data/mlflow-data:/mlflow/mlruns"
+      - "./data/mlflow-data:/mlflow"
     environment:
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
@@ -46,12 +46,12 @@ services:
       - -c
       - mlflow server 
         --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-        --default-artifact-root s3://${BUCKET_NAME} 
+        --artifacts-destination s3://${BUCKET_NAME}
         --host 0.0.0.0
 
   minio:
     image: minio/minio
-    restart: unless-stopped
+    restart: always
     expose:
       - 9000
       - 9001
@@ -65,11 +65,37 @@ services:
       - internal-net
     volumes:
       - "./data/minio-data:${MINIO_VOLUMES}"
+    healthcheck:
+      test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 5
     command: server ${MINIO_VOLUMES} --console-address ":9001"
+
+  # Create a bucket named "bucket" if it doesn't exist
+  # Inspire by https://mlflow.org/docs/latest/tracking/tutorials/remote-server.html#create-compose-yaml
+  minio-create-bucket:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - BUCKET_NAME=${BUCKET_NAME}
+    entrypoint: >
+      bash -c "
+      mc alias set minio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+      if ! mc ls minio | grep --quiet bucket; then
+        mc mb minio/${BUCKET_NAME}
+      else
+        echo '${BUCKET_NAME} already exists'
+      fi
+      "
 
   prometheus:
     image: quay.io/prometheus/prometheus:v2.37.1
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     networks:
       - internal-net
@@ -83,7 +109,7 @@ services:
 
   nginx:
     image: nginx
-    restart: unless-stopped
+    restart: always
     ports:
       - "9000:9000"
       - "9001:9001"
