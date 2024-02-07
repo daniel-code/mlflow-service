@@ -65,6 +65,11 @@ services:
       - internal-net
     volumes:
       - "./data/minio-data:${MINIO_VOLUMES}"
+    healthcheck:
+      test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 5
     command: server ${MINIO_VOLUMES} --console-address ":9001"
 
   # Create a bucket named "bucket" if it doesn't exist
