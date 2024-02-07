@@ -51,7 +51,7 @@ services:
 
   minio:
     image: minio/minio
-    restart: unless-stopped
+    restart: always
     expose:
       - 9000
       - 9001
@@ -95,7 +95,7 @@ services:
 
   prometheus:
     image: quay.io/prometheus/prometheus:v2.37.1
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     networks:
       - internal-net
@@ -109,7 +109,7 @@ services:
 
   nginx:
     image: nginx
-    restart: unless-stopped
+    restart: always
     ports:
       - "9000:9000"
       - "9001:9001"
